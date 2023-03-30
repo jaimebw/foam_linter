@@ -1,4 +1,4 @@
-from src.main import *
+from foam_linter import *
 from pathlib import Path
 
 test_dir = Path("tests/test_files")
