@@ -7,6 +7,7 @@ from enum import Enum
 class DictionaryType(Enum):
     controlDict = 1
     blockMeshDict = 2
+    decomposeParDict = 3 
 
 
 class FoamLinter:
@@ -80,7 +81,9 @@ class FoamLinter:
             errors= errors| self.errors
             return (errors,error_code)
         elif type_val == 2:
-            pass
+            errors, error_code = self.blockMeshDict_linter(self.data)    
+            errors= errors| self.errors
+            return (errors,error_code)
         else:
             # TO_DO: add more cases to de linter
             pass
@@ -120,6 +123,81 @@ class FoamLinter:
             return errors, 0
 
 
+    @staticmethod
+    def blockMeshDict_linter(data:str)->Tuple[dict[str,str],bool]:
+        """
+        A simple linter for the blockMeshDict file of OpenFoam
+        """
+        errors = dict()
+        keywords = [
+            "scale",
+            "rInner",
+            "rOuter",
+            "xmax",
+            "ymax",
+            "zmin",
+            "zmax",
+            "nRadial",
+            "nQuarter",
+            "nxOuter",
+            "nyOuter",
+            "nz",
+            "vertices",
+            "pointField",
+            "points",
+            "blocks",
+            "hex",
+            "grading",
+            "edges",
+            "arc",
+            "origin",
+            "boundary",
+            "type",
+            "symmetryPlane",
+            "faces",
+            "patch",
+            "symmetry",
+            "mergePatchPairs"
+            ]
+        # Find the first closing brace and start parsing after it
+        start_idx = data.find("}") + 1
+        content = data[start_idx:]
+        missing_keywords = []
+        for keyword in keywords:
+            if keyword not in content:
+                missing_keywords.append(keyword)
+        errors["blockMeshDict_linter"] = missing_keywords
+        if missing_keywords:
+            return errors, 1
+        else:
+            return errors, 0
+
+    @staticmethod
+    def decomposeParDict_linter(data:str)->Tuple[dict[str,str],bool]:
+        """
+        A simple linter for the blockMeshDict file of OpenFoam
+        """
+        errors = dict()
+        keywords = [
+            "numberOfSubdomains",
+            "method",
+            "simple",
+            "coeffs",
+            "n"
+            ]
+        # Find the first closing brace and start parsing after it
+        start_idx = data.find("}") + 1
+        content = data[start_idx:]
+        missing_keywords = []
+        for keyword in keywords:
+            if keyword not in content:
+                missing_keywords.append(keyword)
+        errors["decomposeParDict_linter"] = missing_keywords
+        if missing_keywords:
+            return errors, 1
+        else:
+            return errors, 0
+
 
     @staticmethod
     def remove_comments():
@@ -131,50 +209,3 @@ class FoamLinter:
         pass
 
 
-
-    
-
-    
-""" 
-    @staticmethod
-    def lint_controlDict(path: Path) -> Tuple[Dict[str, str], int]:
-        Lint the OpenFOAM controlDict file and log any errors into a dictionary.
-        Returns a tuple containing the dictionary of issues and the total number of issues found.
-        issues = dict()
-
-        # Check for mandatory keywords
-        mandatory_keywords = ['startFrom', 'startTime', 'endTime', 'deltaT']
-        for keyword in mandatory_keywords:
-            if not re.search(keyword, controlDict):
-                issues[f"missing_{keyword}"] = f"'{keyword}' is a mandatory keyword and is missing"
-
-        # Check for typos or misspelled keywords
-        allowed_keywords = ['startFrom', 'startTime', 'endTime', 'deltaT', 'writeControl', 'purgeWrite', 'writeFormat']
-        for line in controlDict.splitlines():
-            if not line.strip():
-                continue
-            keyword = line.split()[0]
-            if keyword not in allowed_keywords:
-                issues[f"unknown_keyword_{keyword}"] = f"Unknown keyword '{keyword}'"
-
-        # Check for unnecessary or redundant keywords
-        for line in controlDict.splitlines():
-            if not line.strip():
-                continue
-            keyword = line.split()[0]
-            if keyword in ['startFrom', 'startTime', 'endTime', 'deltaT']:
-                continue
-            if not re.search(keyword, controlDict):
-                issues[f"unused_keyword_{keyword}"] = f"'{keyword}' is not used in the file"
-
-        # Check for unclosed braces
-        braces_stack = []
-        for i, line in enumerate(controlDict.splitlines()):
-            braces_stack.extend([c for c in line if c == '{'])
-            braces_stack = [c for c in braces_stack if c != '}']
-            if len(braces_stack) > 0 and '}' in line:
-                issues[f"unclosed_brace_{i}"] = f"Unclosed brace in line {i+1}"
-
-
-        return issues,bool(issues) 
-"""
