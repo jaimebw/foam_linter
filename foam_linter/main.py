@@ -121,6 +121,8 @@ class FoamLinter:
             return errors, 1
         else:
             return errors, 0
+
+
     @staticmethod
     def blockMeshDict_linter(data:str)->Tuple[dict[str,str],bool]:
         """
@@ -164,7 +166,33 @@ class FoamLinter:
         for keyword in keywords:
             if keyword not in content:
                 missing_keywords.append(keyword)
-        errors["controlDict_linter"] = missing_keywords
+        errors["blockMeshDict_linter"] = missing_keywords
+        if missing_keywords:
+            return errors, 1
+        else:
+            return errors, 0
+
+    @staticmethod
+    def decomposeParDict_linter(data:str)->Tuple[dict[str,str],bool]:
+        """
+        A simple linter for the blockMeshDict file of OpenFoam
+        """
+        errors = dict()
+        keywords = [
+            "numberOfSubdomains",
+            "method",
+            "simple",
+            "coeffs",
+            "n"
+            ]
+        # Find the first closing brace and start parsing after it
+        start_idx = data.find("}") + 1
+        content = data[start_idx:]
+        missing_keywords = []
+        for keyword in keywords:
+            if keyword not in content:
+                missing_keywords.append(keyword)
+        errors["decomposeParDict_linter"] = missing_keywords
         if missing_keywords:
             return errors, 1
         else:
